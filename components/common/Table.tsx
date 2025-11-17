@@ -29,22 +29,22 @@ const Table = <T extends Record<string, unknown>>({
   onRowClick
 }: TableProps<T>) => {
   if (data.length === 0 && emptyState) {
-    return <div className="rounded-lg border border-dashed border-neutral-300 bg-white p-12 text-center text-sm text-neutral-500">{emptyState}</div>;
+    return <div className="rounded-lg border border-dashed border-primary-300 bg-cream-100 p-12 text-center text-sm text-neutral-600">{emptyState}</div>;
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
+    <div className="rounded-lg border border-primary-200 bg-cream-100 shadow-sm">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-neutral-200">
+        <table className="divide-y divide-primary-200" style={{ tableLayout: 'fixed', width: '100%', minWidth: '900px' }}>
           {caption && <caption className="sr-only">{caption}</caption>}
-          <thead className="bg-neutral-50">
+          <thead className="bg-cream-100">
             <tr>
               {columns.map((column) => (
                 <th
                   key={String(column.key)}
                   scope="col"
                   className={clsx(
-                    "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500",
+                    "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-primary-800",
                     column.align === "center" && "text-center",
                     column.align === "right" && "text-right"
                   )}
@@ -54,22 +54,24 @@ const Table = <T extends Record<string, unknown>>({
                 </th>
               ))}
               {rowAction && (
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-primary-800">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200 bg-white">
+          <tbody className="divide-y divide-primary-200 bg-cream-100">
             {data.map((item, index) => {
               const isSelected = selectedId !== undefined && String(item.id ?? index) === String(selectedId);
               return (
                 <tr
                   key={String(item.id ?? index)}
                   className={clsx(
-                    "hover:bg-neutral-50",
-                    isSelected && "bg-neutral-100",
-                    onRowClick && "cursor-pointer"
+                    "transition-colors",
+                    onRowClick && "cursor-pointer",
+                    isSelected 
+                      ? "bg-primary-200" 
+                      : "bg-cream-100 hover:bg-primary-100"
                   )}
                   onClick={() => onRowClick?.(item)}
                 >
@@ -77,10 +79,11 @@ const Table = <T extends Record<string, unknown>>({
                     <td
                       key={String(column.key)}
                       className={clsx(
-                        "whitespace-nowrap px-4 py-3 text-sm text-neutral-700",
+                        "px-4 py-3 text-sm text-neutral-700",
                         column.align === "center" && "text-center",
                         column.align === "right" && "text-right"
                       )}
+                      style={{ width: column.width }}
                     >
                       {column.render
                         ? column.render(item)
@@ -88,7 +91,7 @@ const Table = <T extends Record<string, unknown>>({
                     </td>
                   ))}
                   {rowAction && (
-                    <td className="px-4 py-3 text-right text-sm text-neutral-500">
+                    <td className="px-4 py-3 text-right text-sm text-neutral-600">
                       {rowAction(item)}
                     </td>
                   )}

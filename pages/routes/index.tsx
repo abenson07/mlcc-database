@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import Topbar from "@/components/common/Topbar";
 import FilterTabs from "@/components/common/FilterTabs";
@@ -6,7 +6,8 @@ import RouteTable from "@/components/routes/RouteTable";
 import DelivererTable from "@/components/routes/DelivererTable";
 import OpenRoutesTable from "@/components/routes/OpenRoutesTable";
 import RouteDetailCard from "@/components/routes/RouteDetailCard";
-import { deliverers, openRoutes, routes } from "@/data/routes";
+import { deliverers } from "@/data/routes";
+import { useRoutes } from "@/hooks/useRoutes";
 
 type TabOption = "byRoute" | "byDeliverer" | "openRoutes";
 
@@ -17,9 +18,11 @@ const routeTabs = [
 ];
 
 const RoutesPage = () => {
+  const { routes, loading, error } = useRoutes();
   const [activeTab, setActiveTab] = useState<TabOption>("byRoute");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const normalizedSearch = searchTerm.toLowerCase();
 
@@ -31,7 +34,7 @@ const RoutesPage = () => {
         route.dropoffLocation.toLowerCase().includes(normalizedSearch) ||
         route.distributor?.toLowerCase().includes(normalizedSearch)
     );
-  }, [normalizedSearch]);
+  }, [normalizedSearch, routes]);
 
   const filteredDeliverers = useMemo(() => {
     if (!normalizedSearch) return deliverers;
@@ -43,13 +46,14 @@ const RoutesPage = () => {
   }, [normalizedSearch]);
 
   const filteredOpenRoutes = useMemo(() => {
+    const openRoutes = routes.filter((route) => route.status === "Open");
     if (!normalizedSearch) return openRoutes;
     return openRoutes.filter(
       (route) =>
         route.name.toLowerCase().includes(normalizedSearch) ||
         route.dropoffLocation.toLowerCase().includes(normalizedSearch)
     );
-  }, [normalizedSearch]);
+  }, [normalizedSearch, routes]);
 
   // Reset selected route when switching tabs
   const handleTabChange = (id: string) => {
@@ -61,7 +65,7 @@ const RoutesPage = () => {
     <div className="space-y-4">
       <Topbar
         title="Routes"
-        ctaLabel="Add new route"
+        ctaLabel="Add new deliverer"
         onAdd={() => {
           // TODO: Launch route creation wizard when backend endpoints exist.
         }}
@@ -77,7 +81,7 @@ const RoutesPage = () => {
               ? routes.length
               : tab.id === "byDeliverer"
               ? deliverers.length
-              : openRoutes.length
+              : routes.filter((route) => route.status === "Open").length
         }))}
         onTabChange={handleTabChange}
       />
@@ -91,6 +95,38 @@ const RoutesPage = () => {
   const selectedRouteDeliverer = selectedRoute
     ? deliverers.find((d) => d.name === selectedRoute.distributor) || null
     : null;
+
+  // Scroll card into view when it's opened
+  useEffect(() => {
+    if (selectedRoute && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedRouteId]);
+
+  if (loading) {
+    return (
+      <AdminLayout header={header}>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-lg text-gray-600">Loading routes...</div>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminLayout header={header}>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-lg text-red-600 mb-2">Error loading routes</div>
+            <div className="text-sm text-gray-600">{error}</div>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout header={header}>
@@ -107,18 +143,10 @@ const RoutesPage = () => {
               onClose={() => {
                 setSelectedRouteId(null);
               }}
-              onAssign={(route) => {
-                // TODO: Connect to assignment workflow.
-                console.info("assign route", route.id);
-              }}
-              onPrint={(route) => {
-                // TODO: Generate printable route sheet.
-                console.info("print route", route.id);
-              }}
             />
           </div>
           {selectedRoute && (
-            <div className="w-1/3 transition-all duration-300">
+            <div ref={cardRef} className="w-1/3 transition-all duration-300 sticky top-8 self-start">
               <RouteDetailCard
                 route={selectedRoute}
                 deliverer={selectedRouteDeliverer}
