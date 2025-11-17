@@ -56,11 +56,11 @@ const TierBadge = ({ tierInfo }: { tierInfo: TierInfo }) => {
   };
 
   const handleClick = () => {
-    const dateStr = tierInfo.lastRenewal 
-      ? formatDate(tierInfo.lastRenewal)
-      : "No renewal date";
-    const textToCopy = `${tierInfo.tier} charged on ${dateStr}`;
-    copyToClipboard(textToCopy, "Copied to clipboard!");
+    if (tierInfo.stripeSubscriptionId) {
+      copyToClipboard(tierInfo.stripeSubscriptionId, "Subscription ID copied to clipboard!");
+    } else {
+      copyToClipboard("", "No subscription ID available");
+    }
   };
 
   return (

@@ -74,7 +74,7 @@ export const usePeople = () => {
       // Get all memberships (not just active, to catch all duplicates)
       const { data: allMemberships, error: memError } = await supabase
         .from('memberships')
-        .select('id, customer_email, status, tier, last_renewal')
+        .select('id, customer_email, status, tier, last_renewal, stripe_subscription_id')
         .not('customer_email', 'is', null);
 
       if (memError) {
@@ -111,23 +111,23 @@ export const usePeople = () => {
       
       for (const [email, memberships] of emailGroups.entries()) {
         if (memberships.length > 1) {
-          // Group by tier and get the most recent renewal date for each tier
-          const tierMap = new Map<string, string | undefined>();
-          memberships.forEach(m => {
-            if (m.tier) {
-              const existingRenewal = tierMap.get(m.tier);
-              // Keep the most recent renewal date
-              if (!existingRenewal || (m.last_renewal && m.last_renewal > existingRenewal)) {
-                tierMap.set(m.tier, m.last_renewal || undefined);
-              }
-            }
-          });
-
-          // Convert to array of TierInfo objects
-          const tiers: { tier: string; lastRenewal?: string }[] = Array.from(tierMap.entries()).map(([tier, lastRenewal]) => ({
-            tier,
-            lastRenewal
-          }));
+          // Include ALL memberships as separate TierInfo objects (don't group by tier)
+          // Sort by renewal date (most recent first)
+          const tiers: { tier: string; lastRenewal?: string; stripeSubscriptionId?: string }[] = memberships
+            .filter(m => m.tier) // Only include memberships with a tier
+            .map(m => ({
+              tier: m.tier!,
+              lastRenewal: m.last_renewal || undefined,
+              stripeSubscriptionId: m.stripe_subscription_id || undefined
+            }))
+            .sort((a, b) => {
+              // Sort by renewal date descending (most recent first)
+              // If no renewal date, put at the end
+              if (!a.lastRenewal && !b.lastRenewal) return 0;
+              if (!a.lastRenewal) return 1;
+              if (!b.lastRenewal) return -1;
+              return b.lastRenewal.localeCompare(a.lastRenewal);
+            });
 
           duplicates.push({
             email: email,

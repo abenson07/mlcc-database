@@ -13,6 +13,7 @@ export type Person = {
 export type TierInfo = {
   tier: string;
   lastRenewal?: string;
+  stripeSubscriptionId?: string;
 };
 
 export type DuplicateMembership = {
