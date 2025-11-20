@@ -263,7 +263,7 @@ const PeopleTable = ({
 
   // Render duplicates view
   if (showDuplicatesView) {
-    const columnsWithRenderers = duplicatesColumns.map((column) => {
+    const columnsWithRenderers: TableColumn<DuplicateRow>[] = duplicatesColumns.map((column) => {
       const renderer = duplicateRenderers[column.key as keyof DuplicateRow];
       return renderer ? { ...column, render: renderer, sortable: true } : { ...column, sortable: true };
     });
@@ -282,7 +282,9 @@ const PeopleTable = ({
   }
 
   // Render regular people view
-  const columnsWithRenderers = columns.map((column) => {
+  // At this point, we know columns is TableColumn<Person>[] because we returned early if showDuplicatesView
+  const personColumns: TableColumn<Person>[] = showMembersColumns ? membersColumns : defaultColumns;
+  const columnsWithRenderers: TableColumn<Person>[] = personColumns.map((column) => {
     const renderer = personRenderers[column.key as keyof Person];
     return renderer 
       ? { ...column, render: renderer, sortable: true } 

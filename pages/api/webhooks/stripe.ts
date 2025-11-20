@@ -11,7 +11,6 @@ export const config = {
 
 // Initialize Stripe with secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-11-20.acacia',
   typescript: true,
 });
 
@@ -246,8 +245,8 @@ async function buffer(req: NextApiRequest): Promise<Buffer> {
   }
 
   // Fallback to stream-based reading (Node.js)
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
+  return new Promise<Buffer>((resolve, reject) => {
+    const chunks: any[] = [];
     req.on('data', (chunk: Buffer) => {
       chunks.push(chunk);
     });

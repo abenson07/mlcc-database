@@ -43,8 +43,8 @@ async function checkEnums() {
     
     if (existing && existing.length > 0) {
       console.log('\nExisting membership values:');
-      const statuses = [...new Set(existing.map(m => m.status).filter(Boolean))];
-      const tiers = [...new Set(existing.map(m => m.tier).filter(Boolean))];
+      const statuses = Array.from(new Set(existing.map(m => m.status).filter(Boolean)));
+      const tiers = Array.from(new Set(existing.map(m => m.tier).filter(Boolean)));
       console.log('Status values found:', statuses);
       console.log('Tier values found:', tiers);
     } else {

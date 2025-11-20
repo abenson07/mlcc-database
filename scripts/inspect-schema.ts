@@ -66,13 +66,13 @@ async function inspectSchema() {
       .limit(1000);
 
     if (statusValues) {
-      const uniqueStatuses = [...new Set(statusValues.map(r => r.status))];
+      const uniqueStatuses = Array.from(new Set(statusValues.map(r => r.status)));
       console.log('\n=== STATUS ENUM VALUES ===');
       console.log(uniqueStatuses);
     }
 
     if (tierValues) {
-      const uniqueTiers = [...new Set(tierValues.map(r => r.tier))];
+      const uniqueTiers = Array.from(new Set(tierValues.map(r => r.tier)));
       console.log('\n=== TIER ENUM VALUES ===');
       console.log(uniqueTiers);
     }

@@ -109,7 +109,8 @@ export const usePeople = () => {
       // Find duplicates (emails with more than one membership)
       const duplicates: DuplicateMembership[] = [];
       
-      for (const [email, memberships] of emailGroups.entries()) {
+      // Convert Map entries to array to avoid iterator issues with ES5 target
+      for (const [email, memberships] of Array.from(emailGroups.entries())) {
         if (memberships.length > 1) {
           // Include ALL memberships as separate TierInfo objects (don't group by tier)
           // Sort by renewal date (most recent first)

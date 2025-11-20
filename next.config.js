@@ -7,9 +7,7 @@ const nextConfig = {
   basePath: '/dashboard',
   assetPrefix: '/dashboard',
   // Ensure compatibility with edge runtime
-  experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
-  },
+  serverExternalPackages: ['@supabase/supabase-js'],
 };
 
 module.exports = nextConfig;

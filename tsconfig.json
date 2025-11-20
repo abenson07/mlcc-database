@@ -14,7 +14,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": ["node", "jest"],
+    "downlevelIteration": true,
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]

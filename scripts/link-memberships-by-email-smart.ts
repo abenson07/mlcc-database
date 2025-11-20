@@ -72,7 +72,7 @@ async function linkMembershipsByEmailSmart() {
     const errorDetails: string[] = [];
     
     // Process each email
-    for (const [email, memberships] of membershipsByEmail.entries()) {
+    for (const [email, memberships] of Array.from(membershipsByEmail.entries())) {
       const personId = emailToPersonId.get(email);
       
       if (!personId) {
