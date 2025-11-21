@@ -9,17 +9,24 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
  * Use serverSupabase instead for server-side operations.
  */
 let supabaseInstance: SupabaseClient | null = null;
+let isPlaceholder = false;
 
 function getSupabaseClient(): SupabaseClient {
-  // Return cached instance if available
-  if (supabaseInstance) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  // On client-side, if we have real env vars but cached a placeholder, re-initialize
+  if (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey && isPlaceholder) {
+    supabaseInstance = null;
+    isPlaceholder = false;
+  }
+
+  // Return cached instance if available and it's not a placeholder (or we're on server)
+  if (supabaseInstance && (!isPlaceholder || typeof window === 'undefined')) {
     return supabaseInstance;
   }
 
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
     // During SSR (server-side), create a placeholder client that won't cause errors
     if (typeof window === 'undefined') {
       // Return a minimal client that won't cause errors during SSR
@@ -28,6 +35,7 @@ function getSupabaseClient(): SupabaseClient {
         supabaseUrl || 'https://placeholder.supabase.co',
         supabaseAnonKey || 'placeholder-anon-key'
       );
+      isPlaceholder = !supabaseUrl || !supabaseAnonKey;
       return supabaseInstance;
     }
 
@@ -44,11 +52,13 @@ function getSupabaseClient(): SupabaseClient {
         'https://placeholder.supabase.co',
         'placeholder-anon-key'
       );
+      isPlaceholder = true;
       return supabaseInstance;
     }
 
-    // Create and cache the client
+    // Create and cache the real client
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+    isPlaceholder = false;
     return supabaseInstance;
   } catch (error) {
     // If client creation fails for any reason, create a placeholder
@@ -57,6 +67,7 @@ function getSupabaseClient(): SupabaseClient {
       'https://placeholder.supabase.co',
       'placeholder-anon-key'
     );
+    isPlaceholder = true;
     return supabaseInstance;
   }
 }
