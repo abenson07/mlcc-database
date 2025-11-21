@@ -68,3 +68,59 @@ export const EllipsisIcon = (props: IconProps) => (
   </svg>
 );
 
+export const EyeIcon = ({ className = "h-5 w-5", ...props }: IconProps) => (
+  <svg
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    {...props}
+  >
+    <path
+      d="M10 4.375C5.625 4.375 2.062 7.188 1.25 10c.813 2.813 4.375 5.625 8.75 5.625s7.688-2.812 8.5-5.625c-.812-2.813-4.375-5.625-8.75-5.625Z"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx={10}
+      cy={10}
+      r={2.5}
+      stroke="currentColor"
+      strokeWidth={1.5}
+    />
+  </svg>
+);
+
+export const EyeSlashIcon = ({ className = "h-5 w-5", ...props }: IconProps) => (
+  <svg
+    viewBox="0 0 20 20"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    {...props}
+  >
+    <path
+      d="M10 4.375C5.625 4.375 2.062 7.188 1.25 10c.813 2.813 4.375 5.625 8.75 5.625s7.688-2.812 8.5-5.625c-.812-2.813-4.375-5.625-8.75-5.625Z"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx={10}
+      cy={10}
+      r={2.5}
+      stroke="currentColor"
+      strokeWidth={1.5}
+    />
+    <path
+      d="M3.75 3.75l12.5 12.5"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
