@@ -1,5 +1,6 @@
 import type { AppProps } from "next/app";
 import { ToastProvider } from "@/components/common/ToastProvider";
+import PasswordGate from "@/components/common/PasswordGate";
 import "@/styles/globals.css";
 import { useEffect } from "react";
 
@@ -21,9 +22,11 @@ const App = ({ Component, pageProps }: AppProps) => {
   }, []);
 
   return (
-    <ToastProvider>
-      <Component {...pageProps} />
-    </ToastProvider>
+    <PasswordGate>
+      <ToastProvider>
+        <Component {...pageProps} />
+      </ToastProvider>
+    </PasswordGate>
   );
 };
 
