@@ -104,7 +104,10 @@ export const useRoutes = () => {
   }, []);
 
   useEffect(() => {
-    fetchRoutes();
+    // Only fetch data on the client side
+    if (typeof window !== 'undefined') {
+      fetchRoutes();
+    }
   }, [fetchRoutes]);
 
   return { routes, loading, error, refetch: fetchRoutes };

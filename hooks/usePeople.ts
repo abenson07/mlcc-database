@@ -147,8 +147,11 @@ export const usePeople = () => {
   }, []);
 
   useEffect(() => {
-    fetchPeople();
-    fetchDuplicateMemberships();
+    // Only fetch data on the client side
+    if (typeof window !== 'undefined') {
+      fetchPeople();
+      fetchDuplicateMemberships();
+    }
   }, [fetchPeople, fetchDuplicateMemberships]);
 
   return { 

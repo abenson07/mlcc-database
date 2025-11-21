@@ -85,7 +85,10 @@ export const useBusinesses = () => {
   }, []);
 
   useEffect(() => {
-    fetchBusinesses();
+    // Only fetch data on the client side
+    if (typeof window !== 'undefined') {
+      fetchBusinesses();
+    }
   }, [fetchBusinesses]);
 
   return { businesses, loading, error, refetch: fetchBusinesses };
