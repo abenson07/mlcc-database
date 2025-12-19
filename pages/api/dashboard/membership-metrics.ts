@@ -206,11 +206,8 @@ async function fetchProductMonthlyAverages(): Promise<{
         starting_after: startingAfter,
       });
       
-      // Process each invoice
+      // Process each invoice (including both subscription and one-time payments)
       for (const invoice of invoices.data) {
-        // Skip non-subscription invoices
-        if (!invoice.subscription) continue;
-        
         // Get the payment date
         const paidDate = invoice.status_transitions.paid_at 
           ? new Date(invoice.status_transitions.paid_at * 1000)
@@ -341,7 +338,10 @@ async function fetchMembershipMetrics(months: { month: string; startDate: Date; 
         ? new Date(membership.created_at)
         : null;
       
-      if (renewalDate && membership.status !== 'Active') {
+      // Check if membership is not active (case-insensitive check)
+      const isActive = membership.status?.toLowerCase() === 'active';
+      
+      if (renewalDate && !isActive) {
         // Expected renewal is 1 year after renewal/creation date
         const expectedRenewal = new Date(renewalDate);
         expectedRenewal.setFullYear(expectedRenewal.getFullYear() + 1);
@@ -350,31 +350,39 @@ async function fetchMembershipMetrics(months: { month: string; startDate: Date; 
         
         // Only count if expected renewal has passed
         if (expectedRenewal <= now) {
-          // Calculate which month the churn occurred in (round up to nearest month)
-          // If expected renewal was in the past, count it in the month it should have renewed
+          // Calculate which month the churn occurred in
           const expectedRenewalMonth = `${expectedRenewal.getFullYear()}-${String(expectedRenewal.getMonth() + 1).padStart(2, '0')}`;
           
-          // Check if expected renewal month is in our range
+          // Check if expected renewal month is in our 12-month range
           if (churnsMap.has(expectedRenewalMonth)) {
             const current = churnsMap.get(expectedRenewalMonth) || 0;
             churnsMap.set(expectedRenewalMonth, current + 1);
           } else {
-            // If expected renewal month is outside our 12-month range but in the past,
-            // count it in the most recent month of our range (round up approach)
-            const mostRecentMonth = months[months.length - 1].month;
+            // If expected renewal month is outside our range, find the closest month in range
+            // Round up: if expected renewal is before our range, count in first month
+            // If after our range, don't count (future churn)
             const expectedRenewalDate = new Date(expectedRenewal.getFullYear(), expectedRenewal.getMonth(), 1);
-            const mostRecentMonthDate = new Date(
-              parseInt(mostRecentMonth.split('-')[0]),
-              parseInt(mostRecentMonth.split('-')[1]) - 1,
-              1
-            );
+            const firstMonthDate = months[0].startDate;
+            const lastMonthDate = months[months.length - 1].endDate;
             
-            // If expected renewal is before our range but the membership is not active, 
-            // count it in the first month of our range
-            if (expectedRenewalDate < mostRecentMonthDate) {
+            // If expected renewal is before our range start, count in first month (round up)
+            if (expectedRenewalDate < firstMonthDate) {
               const firstMonth = months[0].month;
               const current = churnsMap.get(firstMonth) || 0;
               churnsMap.set(firstMonth, current + 1);
+            }
+            // If expected renewal is within or after our range but not in a specific month,
+            // and it's in the past, count in the month it falls in (shouldn't happen, but safety check)
+            else if (expectedRenewalDate <= lastMonthDate) {
+              // This shouldn't happen if our month calculation is correct, but as a fallback
+              // find the month that contains this date
+              for (const month of months) {
+                if (expectedRenewalDate >= month.startDate && expectedRenewalDate <= month.endDate) {
+                  const current = churnsMap.get(month.month) || 0;
+                  churnsMap.set(month.month, current + 1);
+                  break;
+                }
+              }
             }
           }
         }
