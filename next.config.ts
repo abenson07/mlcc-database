@@ -1,8 +1,5 @@
 import type { NextConfig } from "next";
-
-// User config is optional - Webflow Cloud may provide it at build time
-// For now, we'll use sensible defaults
-const userConfig: Partial<NextConfig> = {};
+import userConfig from './clouduser.next.config';
 
 const webflowOverrides: NextConfig = {
   basePath: '/dashboard',
@@ -17,8 +14,6 @@ const webflowOverrides: NextConfig = {
 };
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true,
-  serverExternalPackages: ['@supabase/supabase-js'],
   ...userConfig,
   ...webflowOverrides,
 };

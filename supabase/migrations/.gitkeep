@@ -27,3 +27,4 @@ Example: `20250111120000_add_route_assignments.sql`
 - Always regenerate types after migrations
 
 
+

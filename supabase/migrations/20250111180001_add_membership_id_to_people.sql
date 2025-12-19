@@ -11,3 +11,4 @@ CREATE INDEX IF NOT EXISTS idx_people_membership_id ON people(membership_id);
 COMMENT ON COLUMN people.membership_id IS 'Foreign key to memberships table, links person to their active membership';
 
 
+

@@ -51,3 +51,4 @@ WHERE table_name = 'people' AND table_schema = 'public'
 ORDER BY ordinal_position;
 
 
+

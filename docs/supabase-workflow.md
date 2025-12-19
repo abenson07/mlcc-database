@@ -204,3 +204,4 @@ When requesting a new feature:
 See `.cursor/agent.md` for detailed implementation guidelines.
 
 
+

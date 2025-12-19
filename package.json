@@ -11,7 +11,11 @@
     "db:migrate": "supabase db push",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --linked > src/types/database.types.ts",
-    "db:link": "supabase link --project-ref"
+    "db:link": "supabase link --project-ref",
+    "webflow:auth": "webflow auth login",
+    "webflow:deploy": "webflow cloud deploy",
+    "webflow:init": "webflow cloud init",
+    "webflow:status": "webflow cloud status"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "1.6.5",
@@ -24,6 +28,7 @@
     "next": "^15.0.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
+    "recharts": "^2.12.7",
     "stripe": "^14.21.0",
     "zod": "^3.22.4"
   },
@@ -31,6 +36,7 @@
     "@types/node": "20.11.24",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
+    "@webflow/webflow-cli": "^1.9.0",
     "autoprefixer": "10.4.17",
     "postcss": "8.4.35",
     "supabase": "^1.183.1",

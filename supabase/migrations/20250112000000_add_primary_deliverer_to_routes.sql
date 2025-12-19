@@ -18,3 +18,4 @@ COMMENT ON COLUMN routes.primary_deliverer_email IS 'Email address of the primar
 COMMENT ON COLUMN routes.primary_deliverer_id IS 'Foreign key to people table, links route to its primary deliverer';
 
 
+

@@ -19,11 +19,27 @@ const PasswordGate = ({ children }: PasswordGateProps) => {
 
   const checkAuthentication = async () => {
     try {
-      // Use absolute path - API routes are not affected by basePath
+      // API routes require basePath prefix with OpenNext Cloudflare adapter
+      const basePath = '/dashboard';
       const apiUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/api/auth/verify-session`
-        : '/api/auth/verify-session';
+        ? `${window.location.origin}${basePath}/api/auth/verify-session`
+        : `${basePath}/api/auth/verify-session`;
       const response = await fetch(apiUrl);
+      
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response from API:', {
+          status: response.status,
+          statusText: response.statusText,
+          contentType,
+          body: text.substring(0, 200)
+        });
+        setIsAuthenticated(false);
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.authenticated) {
@@ -49,10 +65,11 @@ const PasswordGate = ({ children }: PasswordGateProps) => {
     }
 
     try {
-      // Use absolute path - API routes are not affected by basePath
+      // API routes require basePath prefix with OpenNext Cloudflare adapter
+      const basePath = '/dashboard';
       const apiUrl = typeof window !== 'undefined'
-        ? `${window.location.origin}/api/auth/validate-password`
-        : '/api/auth/validate-password';
+        ? `${window.location.origin}${basePath}/api/auth/validate-password`
+        : `${basePath}/api/auth/validate-password`;
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -60,6 +77,20 @@ const PasswordGate = ({ children }: PasswordGateProps) => {
         },
         body: JSON.stringify({ password }),
       });
+
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response from API:', {
+          status: response.status,
+          statusText: response.statusText,
+          contentType,
+          body: text.substring(0, 200)
+        });
+        setError('Server error: Invalid response format');
+        return;
+      }
 
       const data = await response.json();
 

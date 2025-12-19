@@ -99,3 +99,4 @@ The script will:
 - Update the `csvPath` variable in `scripts/seed-memberships.ts` to point to your CSV location
 
 
+
