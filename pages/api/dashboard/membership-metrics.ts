@@ -33,6 +33,14 @@ const PRODUCT_NAMES: Record<string, string> = {
   '6rrpathkccu68dtr64tp6cv1cmt62cb474u68e9d6rrpathq61hk8c1p65gp8r9r68tp8rhrctgk6r8': 'Individual',
 };
 
+// Product IDs to exclude from the product averages table
+const EXCLUDED_PRODUCT_IDS = [
+  'prod_NtJNKoSC5qAtfq',
+  '6rrpathkccvkcdv3ccvkgt3164w64cb3cgwpcctd6rrpathq61hk8c1p65gp8r9r68tp8rhrctgk6r8',
+  'prod_NtJMqgjCoaU24D',
+  'prod_L27az9e7kKjClv',
+];
+
 // Month names array for easier mapping
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -326,21 +334,48 @@ async function fetchMembershipMetrics(months: { month: string; startDate: Date; 
       }
       
       // Calculate churns (expected renewal date was in this month but status is not Active)
-      if (membership.last_renewal) {
-        const lastRenewal = new Date(membership.last_renewal);
-        // Expected renewal is 1 year after last renewal
-        const expectedRenewal = new Date(lastRenewal);
+      // Use last_renewal if available, otherwise fall back to created_at
+      const renewalDate = membership.last_renewal 
+        ? new Date(membership.last_renewal)
+        : membership.created_at 
+        ? new Date(membership.created_at)
+        : null;
+      
+      if (renewalDate && membership.status !== 'Active') {
+        // Expected renewal is 1 year after renewal/creation date
+        const expectedRenewal = new Date(renewalDate);
         expectedRenewal.setFullYear(expectedRenewal.getFullYear() + 1);
         
-        const expectedRenewalMonth = `${expectedRenewal.getFullYear()}-${String(expectedRenewal.getMonth() + 1).padStart(2, '0')}`;
+        const now = new Date();
         
-        // Check if expected renewal month is in our range and status is not Active
-        if (churnsMap.has(expectedRenewalMonth) && membership.status !== 'Active') {
-          // Double-check that the expected renewal date has passed
-          const now = new Date();
-          if (expectedRenewal <= now) {
+        // Only count if expected renewal has passed
+        if (expectedRenewal <= now) {
+          // Calculate which month the churn occurred in (round up to nearest month)
+          // If expected renewal was in the past, count it in the month it should have renewed
+          const expectedRenewalMonth = `${expectedRenewal.getFullYear()}-${String(expectedRenewal.getMonth() + 1).padStart(2, '0')}`;
+          
+          // Check if expected renewal month is in our range
+          if (churnsMap.has(expectedRenewalMonth)) {
             const current = churnsMap.get(expectedRenewalMonth) || 0;
             churnsMap.set(expectedRenewalMonth, current + 1);
+          } else {
+            // If expected renewal month is outside our 12-month range but in the past,
+            // count it in the most recent month of our range (round up approach)
+            const mostRecentMonth = months[months.length - 1].month;
+            const expectedRenewalDate = new Date(expectedRenewal.getFullYear(), expectedRenewal.getMonth(), 1);
+            const mostRecentMonthDate = new Date(
+              parseInt(mostRecentMonth.split('-')[0]),
+              parseInt(mostRecentMonth.split('-')[1]) - 1,
+              1
+            );
+            
+            // If expected renewal is before our range but the membership is not active, 
+            // count it in the first month of our range
+            if (expectedRenewalDate < mostRecentMonthDate) {
+              const firstMonth = months[0].month;
+              const current = churnsMap.get(firstMonth) || 0;
+              churnsMap.set(firstMonth, current + 1);
+            }
           }
         }
       }
@@ -392,8 +427,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       churns: membershipMetrics.churns.get(month) || 0,
     }));
     
-    // Convert product data to ProductMonthlyAverages array
-    const productAverages: ProductMonthlyAverages[] = Array.from(productData.productData.entries()).map(([productId, monthMap]) => {
+    // Convert product data to ProductMonthlyAverages array, excluding unwanted products
+    const productAverages: ProductMonthlyAverages[] = Array.from(productData.productData.entries())
+      .filter(([productId]) => !EXCLUDED_PRODUCT_IDS.includes(productId))
+      .map(([productId, monthMap]) => {
       const monthlyAverages: ProductMonthlyAverages['monthlyAverages'] = {
         January: 0,
         February: 0,
